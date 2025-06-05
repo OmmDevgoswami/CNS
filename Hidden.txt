@@ -1,0 +1,201 @@
+def vigenere_cipher(text, key, encrypt=True):
+    result = []
+    key = key.lower()
+    key_length = len(key)
+    key_index = 0
+    for char in text:
+        if char.isalpha():
+            shift = ord(key[key_index % key_length]) - ord('a')
+            key_index += 1
+            if not encrypt:
+                shift = -shift
+            if char.islower():
+                new_char = chr((ord(char) - ord('a') + shift) % 26 + ord('a'))
+            else:
+                new_char = chr((ord(char) - ord('A') + shift) % 26 + ord('A'))
+            result.append(new_char)
+        else:
+            result.append(char)
+   
+    return ''.join(result)
+
+cipher_text=vigenere_cipher('HELLO WORLD', 'KEY', True)
+print("Encrypted :",cipher_text)
+decrypted_text=vigenere_cipher(cipher_text, 'KEY', False)
+print("Decrypted :"+decrypted_text)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+import string
+def create_matrix(key):
+    key =key.upper().replace('J','I')
+    seen =set()
+    matrix = []
+    for char in key + string.ascii_uppercase:
+        if char not in seen and char.isalpha():
+            seen.add(char)
+            matrix.append(char)
+    return [matrix[i:i+5] for i in range(0, 25, 5)]
+
+def find_position(matix,char):
+    for row in range(5):
+        for col in range(5):
+            if matix[row][col] == char:
+                return (row,col)
+    return None
+
+def prepare_text(text,encrypt =True):
+    text = text.upper().replace('J','I')
+    text = ''.join(filter(str.isalpha,text))
+
+    pairs =[]
+    i=0
+    while i < len(text):
+        a= text[i]
+        b=''
+        if i+1 < len(text):
+            b = text[i+1]
+            if a == b:
+                b="X"
+                i += 1
+            else:
+                i += 2
+        else:
+            b='X'
+            i += 1
+        pairs.append((a,b))
+    return pairs
+
+def encrypt_pair(a,b,matrix):
+    row1,col1 = find_position(matrix,a)
+    row2,col2 = find_position(matrix,b)
+    if row1 == row2:
+        return matrix[row1][(col1 +1)%5] + matrix[row2][(col2 +1)%5]
+    elif col1 == col2:
+        return matrix[(row1 +1)%5][col1] + matrix[(row2 +1)%5][col2]
+    else:
+        return matrix[row1][col2] + matrix[row2][col1]
+
+def decrypt_pair(a,b,matrix):
+    row1,col1 = find_position(matrix,a)
+    row2,col2 = find_position(matrix,b)
+    if row1 == row2:
+        return matrix[row1][(col1 -1)%5] + matrix[row2][(col2 -1)%5]
+    elif col1 == col2:
+        return matrix[(row1 -1)%5][col1] + matrix[(row2 -1)%5][col2]
+    else:
+        return matrix[row1][col2] + matrix[row2][col1]
+   
+
+def encrypt_playfair(text,key):
+    matrix = create_matrix(key)
+    pairs = prepare_text(text)
+    encrypted = [encrypt_pair(a,b,matrix) for a,b in pairs]
+    return ''.join(encrypted)
+
+def decrypt_playfair(text,key):
+    matrix = create_matrix(key)
+    pairs = prepare_text(text)
+    decrypted = [decrypt_pair(a,b,matrix) for a,b in pairs]
+    return ''.join(decrypted)
+
+message ='HELLOWORLD'
+key ='MONARCHY'
+
+encrypted = encrypt_playfair(message,key)
+decrypted = decrypt_playfair(encrypted,key)
+
+print('Original message:',message)
+print('Encrypted message:',encrypted)
+print('Decrypted message:',decrypted)
+
+
+
+
+
+
+
+
+
+
+import random
+
+def is_prime(num):
+    for _ in range(2, num//2):
+        if num%_ == 0:
+            return False
+    return True
+
+def gcd(a, b):
+    while b != 0:
+        a,b = b , a % b
+    return a
+
+def modInverse(a, m):
+    for _ in range(1, m):
+        if (a * _) % m == 1:
+            return _
+    return None
+
+def choose_e(Euler_value):
+    e = random.randrange(2 , Euler_value)
+    while gcd(e, Euler_value) != 1:
+        e = random.randrange(2, Euler_value)
+    return e
+
+def generate_prime(min_val = 11, max_val = 999):
+    while True:
+        num_1 = random.randint(min_val,  max_val)
+        if is_prime(num_1):
+            return num_1
+       
+def generate_keys():
+    p = generate_prime()
+    q = generate_prime()
+    N = p*q
+    Euler = (p - 1)*(q - 1)
+
+    e = choose_e(Euler)
+    if gcd(e, Euler) != 1:
+        raise ValueError(f"e : {e} and Euler's Value : {Euler} are not coprime")
+
+    d = modInverse(e, Euler)
+
+    publicKey = (e, N)
+    privateKey = (d, N)
+
+    return publicKey, privateKey
+
+def encrypt(plainText, publicKey):
+    e, N = publicKey
+    cipher = [pow(ord(char), e, N) for char in plainText]
+    return cipher
+
+def decrypt(cipherText, privateKey):
+    d, N = privateKey
+    plain = [chr(pow(char, d, N)) for char in cipherText]
+    return plain
+
+publicKey , privateKey = generate_keys()
+message = "HELLO"
+print (f"Original Text : {message}")
+encryptedText = encrypt(message, publicKey)
+print (f"Encrypted Text : {encryptedText}")
+decryptedText = decrypt(encryptedText, privateKey)
+print (f"Decrypted Text : {decryptedText}")
