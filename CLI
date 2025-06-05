@@ -1,0 +1,104 @@
+
+LAB1 Objective 2 (Telnet)
+#line vty 0 5
+Router(config-line)#do wr
+Building configuration...
+[OK]
+Router(config-line)#password cisco1
+Router(config-line)#enable secret cisco2
+Router(config)#do wr
+Router(config-if)#no shutdown
+PC0 Command Prompt:
+telnet 192.168.1.1(ip address of router)
+1
+st password cisco1
+Router > enable
+2
+nd password cisco2
+Config t
+Interface gig 0/0
+Ip address 192.168.1.5 255.255.255.0
+C:\> ping 192.168.1.5
+
+--------------------------------------
+LAB1 Objective 3 (SSH)
+Router(config)#hostname CNSRouter
+CNSRouter(config)#enable password cisco
+CNSRouter(config)#ip domain-name
+cisco.com
+CNSRouter(config)#username iter password
+cisco1
+CNSRouter(config)#crypto key generate rsa
+How many bits in the modulus [512]: 1024
+CNSRouter(config)#line vty 0 4
+CNSRouter(config-line)#login local
+CNSRouter(config-line)#transport input ssh
+CNSRouter(config-line)#ip ssh version 2
+CNSRouter(config-line)#exit
+PC0 Command Prompt:
+Ssh -l iter 192.168.10.2
+Password cisco1
+Enable
+Password cisco
+Config t
+
+---------------------------------------
+AAA Server without SSH:-
+Router(config)#aaa new-model
+Router(config)#aaa authentication login default local
+Router(config)#tacacs-server host 192.168.10.4
+Router(config)#tacacs-server key server123
+Router(config)#line vty 0 5
+Router(config-line)#login authentication default
+Router(config-line)#line console 0
+Router(config-line)#login authentication default
+Router(config-line)#exit
+Router(config)#exit
+Router#config t
+Enter configuration commands, one per line. End with CNTL/Z.
+Router(config)#username CNSRouter password router123
+Router(config)#aaa authentication login default group tacacs+ local
+Router(config)#exit
+
+--------------------------------------
+AAA Server with SSH:-
+Router(config)#username iter password cisco
+Router(config)#aaa new-model
+Router(config)#aaa authentication login default local
+Router(config)#tacacs-server host 192.168.10.4
+Router(config)#tacacs-server key server123
+Router(config)#aaa authentication login default group tacacs local
+Router(config)#line vty 0 4
+Router(config-line)#login authentication default
+Router(config-line)#transport input ssh
+Router(config-line)#exit
+Router(config)#enable password 0987
+Router#config t
+Enter configuration commands, one per line. End with CNTL/Z.
+Router(config)#username CNSRouter password router123
+Router(config)#aaa authentication login default group tacacs+ local
+Router(config)#exit
+
+--------------------------------------
+Permit/Deny to a remote server HTTP/FTP LAB3 Obj3:-
+enable
+config t
+access-list 105 deny tcp host 192.168.10.1 host 200.10.10.2 eq www
+access-list 105 deny tcp host 192.168.10.2 host 200.10.10.2 eq ftp
+access-list 105 deny icmp host 192.168.10.3 host 200.10.10.2
+do show access-list
+access-list 105 permit ip any any
+interface gig 0/0/0
+ip access-group 105 in
+
+--------------------------------------
+Permit/Deny to a remote server LAB3 Obj2:-
+enable
+config t
+access-list 10 deny host 192.168.10.2
+access-list 10 permit any
+interface gig 0/0/1
+ip access-group 10 out
+
+https://github.com/DinanathDash/CSE/tree/main/SEM_6/CNS
+https://drive.google.com/drive/folders/1VGbAS6hexVig4Xuwr56GgD5EAgpyE6RY?usp=drive_link
